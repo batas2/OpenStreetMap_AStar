@@ -28,7 +28,7 @@ namespace AStar.Controllers
 
                 if (current == goal)
                 {
-                    var reconstructPath = reconstruct_path(cameFrom, goal);
+                    var reconstructPath = FormatPath(cameFrom, goal);
                     var path = reconstructPath.Reverse().ToList();
 
                     var roadSegments = new List<RoadSegmentViewModel>();
@@ -49,7 +49,7 @@ namespace AStar.Controllers
                 var neighbors = Neighbor(current, data);
                 foreach (var neighbor in neighbors.Where(x => !closedSet.Contains(x)))
                 {
-                    var tentativeGScore = gScore[current] + dist_between(current, neighbor, data);
+                    var tentativeGScore = gScore[current] + Distance(current, neighbor, data);
 
                     if (!openSet.Contains(neighbor))
                         openSet.Add(neighbor);
@@ -66,22 +66,22 @@ namespace AStar.Controllers
             return new RoadSegmentViewModel[0];
         }
 
-        private double dist_between(long startId, long stopId, IList<RoadSegmentViewModel> data)
+        private double Distance(long startId, long stopId, IList<RoadSegmentViewModel> data)
         {
-            return
-                data.Where(x => x.StartNodeId == startId && x.StopNodeId == stopId).Select(x => x.Cost).FirstOrDefault();
+            return data.Where(x => x.StartNodeId == startId && x.StopNodeId == stopId)
+                    .Select(x => x.Cost)
+                    .FirstOrDefault();
         }
 
         private IEnumerable<long> Neighbor(long nodeId, IList<RoadSegmentViewModel> nodes)
         {
-            return
-                nodes.Where(x => x.StartNodeId == nodeId)
+            return nodes.Where(x => x.StartNodeId == nodeId)
                     .Select(x => x.StopNodeId)
                     .Union(nodes.Where(x => x.StopNodeId == nodeId).Select(x => x.StartNodeId))
                     .Distinct();
         }
 
-        private IList<long> reconstruct_path(Dictionary<long, long> cameFrom, long current)
+        private IList<long> FormatPath(Dictionary<long, long> cameFrom, long current)
         {
             var result = new List<long> {current};
             while (cameFrom.ContainsKey(current))

@@ -9,22 +9,28 @@ namespace AStar.Controllers
     public class ValuesController : ApiController
     {
         [HttpGet]
+        //http://localhost:51222/path/Marsza%C5%82kowska/Banacha
         public IEnumerable<RoadSegmentViewModel> FindPath(string startStreetName, string stopStreetName)
         {
             var data = new InMemoryCache().GetOrSet("data", () => new DataProvider.DataProvider().LoadRoadSegments().ToList());
 
-            var startNode =
-                data.Where(x => x.RoadName.Contains(startStreetName)).OrderByDescending(x => x.Order).ToList();
-            var stopNode = data.Where(x => x.RoadName.Contains(stopStreetName))
-                .OrderBy(x => x.Order)
-                .ThenBy(x => x.RoadName.Length)
-                .ToList();
+            var startNode = data
+                            .Where(x => x.RoadName.ToLower().Contains(startStreetName.ToLower()))
+                            .OrderByDescending(x => x.Order)
+                            .ToList();
+
+            var stopNode = data
+                            .Where(x => x.RoadName.ToLower()
+                            .Contains(stopStreetName.ToLower()))
+                            .OrderBy(x => x.Order)
+                            .ThenBy(x => x.RoadName.Length)
+                            .ToList();
 
             if (!startNode.Any() || !stopNode.Any())
                 return new RoadSegmentViewModel[0];
 
-            var start = startNode.FirstOrDefault().StartNodeId;
-            var goal = stopNode.FirstOrDefault().StartNodeId;
+            var start = startNode.First().StartNodeId;
+            var goal = stopNode.First().StartNodeId;
 
             return new AStarAlg().FindPath(start, goal, data);
         }
